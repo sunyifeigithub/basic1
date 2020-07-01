@@ -1,0 +1,34 @@
+version: '2'
+services:
+    nacos:
+        image: nacos/nacos-server:latest
+        container_name: nacos
+        hostname: nacos
+        environment:
+            - MODE=standalone
+        ports:
+            - 8848:8848
+        networks:
+            my_net4:
+                ipv4_address: 172.24.1.2
+    service:
+        build: ./../service/target
+        ports:
+            - 8080:8080
+        container_name: service
+        restart: always
+        depends_on:
+            -  nacos
+              # volumes: #/host-path:/container-path
+              #- /Users/sunyifei/IdeaProjects/timon_02/target/ssw.sh:/usr/bin/ssw.sh
+        entrypoint: "bash /usr/bin/wait-for-it.sh nacos:8848 -- java  -jar /app.jar"
+        networks:
+            my_net4:
+                ipv4_address: 172.24.1.5
+networks:
+    my_net4:
+        driver: bridge
+        ipam:
+            config:
+                - subnet:  172.24.1.0/24
+                  gateway: 172.24.1.1
